@@ -5,7 +5,7 @@ from tkinter import simpledialog
 ROOT = tk.Tk()
 ROOT.withdraw()
 
-openai.api_key = "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"
+openai.api_key = "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"
 # Set the model and prompt(question)
 model_engine = "text-davinci-003"
 prompt = simpledialog.askstring(title="Chat-GPT version T.0", prompt="Hi!! What would you like to ask me or talk about ?")

@@ -2,7 +2,7 @@ import random
 import pyautogui as pg
 import time
 def main():
-    x=('Aryan','Shikhar','Friends','Bros','Shreyansh','Tanmay')
+    x=('aryan','hitesh','shravani','tanmay')
     #time.sleep(7)
     for i in range(2):
         a=random.choice(x)

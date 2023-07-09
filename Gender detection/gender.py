@@ -1,23 +1,43 @@
 import cv2
 import cvlib as cv
-import sys
-import numpy as np
-from numpy.lib.type_check import imag
-image = cv2.imread("aman.png")
-face, confidence = cv.detect_face(image)
-padding = 20
+from cvlib.object_detection import draw_bbox
 
-for i in face:
-    (x, y) = max(0, i[0]-padding), max(0, i[1]-padding)
-    (x2, y2) = min(image.shape[1]-1, i[2]+padding), min(image.shape[0]-1,i[3]+padding)
-    cv2.rectangle(image, (x, y), (x2, y2), (0, 255, 0), 2)
-    crop = np.copy(image[y:y2, x:x2])
-    (label, confidence) = cv.detect_gender(crop)
-    idx = np.argmax(confidence)
-    label = label[idx]
-    label = "{}: {:.2f}%".format(label, confidence[idx] * 100)
-    Y = y - 10 if y -10 > 10 else y + 10
-    cv2.putText(image, label, (y, Y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+# Load the pre-trained model
+gender_model = cv2.dnn.readNetFromCaffe('gender_deploy.prototxt', 'gender_net.caffemodel')
 
-cv2.imshow("Gender Detection", image)
-cv2.waitKey()
+# Load the image
+image = cv2.imread('your_image.jpg')
+
+# Perform face detection
+faces, confidences = cv.detect_face(image)
+
+# Loop through detected faces
+for face in faces:
+    # Get the coordinates of the face
+    (startX, startY) = face[0], face[1]
+    (endX, endY) = face[2], face[3]
+    
+    # Extract the face region of interest
+    face_crop = np.copy(image[startY:endY, startX:endX])
+    
+    # Preprocess the face crop for gender classification
+    face_crop = cv2.resize(face_crop, (96, 96))
+    face_crop = face_crop.astype('float') / 255.0
+    face_blob = cv2.dnn.blobFromImage(face_crop, 1.0, (96, 96), (0, 0, 0), swapRB=True, crop=False)
+    
+    # Perform gender classification
+    gender_model.setInput(face_blob)
+    gender_preds = gender_model.forward()
+    
+    # Get the gender label
+    gender_label = ['Male', 'Female'][np.argmax(gender_preds)]
+    
+    # Draw bounding box and gender label on the image
+    label = f'{gender_label}: {max(gender_preds[0]) * 100:.2f}%'
+    cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
+    cv2.putText(image, label, (startX, startY - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+# Display the output image
+cv2.imshow('Gender Detection', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
