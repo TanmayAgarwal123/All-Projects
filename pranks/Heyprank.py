@@ -12,4 +12,4 @@ print(len(messages))
 for message in messages:
     pg.write(message)
     pg.press("enter")
-    time.sleep(60)
+    time.sleep(1)
